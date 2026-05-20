@@ -1,0 +1,90 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: conversor-temperatura
+    namespace: teste
+    labels:
+        app: conversor-temperatura
+spec:
+    selector:
+        matchLabels:
+            app: conversor-temperatura
+    replicas: 1
+    revisionHistoryLimit: 3
+    template:
+        metadata:
+            labels:
+                app: conversor-temperatura
+        spec:
+            containers:
+                - name: conversor-temperatura
+                  image: gabrielschiestl/conversor-temperatura:latest
+                  imagePullPolicy: IfNotPresent                                                                          
+                  command: ["node"]
+                  args: ["server.js"]
+                  startupProbe:
+                      periodSeconds: 30
+                      failureThreshold: 6
+                      httpGet:
+                          port: 8080
+                          path: /health
+                  livenessProbe:
+                      periodSeconds: 60
+                      initialDelaySeconds: 60
+                      httpGet:
+                          port: 8080
+                          path: /health
+                  resources:
+                      requests:
+                          cpu: 50m
+                          memory: 128Mi
+                      limits:
+                          cpu: 100m
+                          memory: 256Mi
+---
+# ---- On Demand K8s ----
+
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+    name: conversor-temperatura
+    labels:
+        app: conversor-temperatura
+    namespace: teste
+spec:
+    scaleTargetRef:
+        apiVersion: apps/v1
+        kind: Deployment
+        name: conversor-temperatura
+    minReplicas: 1
+    maxReplicas: 2
+    metrics:
+        - type: Resource
+          resource:
+              name: cpu
+              target:
+                  type: Utilization
+                  averageUtilization: 60
+        - type: Resource
+          resource:
+              name: memory
+              target:
+                  type: Utilization
+                  averageUtilization: 60
+---
+# ---- Service creation ----
+
+apiVersion: v1
+kind: Service
+metadata:
+    name: conversor-temperatura
+    namespace: teste
+spec:
+    selector:
+        app: conversor-temperatura
+    type: LoadBalancer
+    ports:
+        - protocol: TCP
+          port: 32000
+          targetPort: 8080
