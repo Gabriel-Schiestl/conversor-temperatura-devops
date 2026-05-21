@@ -7,8 +7,8 @@
 # Set-ExecutionPolicy -Scope Process Bypass
 
 $TARGET_IP   = "0.0.0.0"   # <-- substitua pelo IP do LoadBalancer
-$TARGET_PORT = 32000
-$CONCURRENCY = 50           # requisições paralelas por rodada
+$TARGET_PORT = 80
+$CONCURRENCY = 200           # requisições paralelas por rodada
 $INTERVAL_MS = 200          # intervalo entre rodadas (ms)
 
 $ENDPOINTS = @(
@@ -26,8 +26,10 @@ Write-Host "Alvo: $baseUrl"
 Write-Host "Concorrência: $CONCURRENCY req/rodada | intervalo: ${INTERVAL_MS}ms"
 Write-Host "Pressione Ctrl+C para parar.`n"
 
-$client = [System.Net.Http.HttpClient]::new()
+Add-Type -AssemblyName System.Net.Http
+$client = New-Object System.Net.Http.HttpClient
 $client.Timeout = [TimeSpan]::FromSeconds(5)
+if ($null -eq $client) { Write-Error "Falha ao criar HttpClient"; exit 1 }
 
 $totalRequests = 0
 $totalErrors   = 0
@@ -35,10 +37,12 @@ $startTime     = [DateTime]::Now
 
 while ($true) {
     # Dispara todas as requisições da rodada em paralelo
-    $tasks = 1..$CONCURRENCY | ForEach-Object {
-        $path = $ENDPOINTS[(Get-Random -Maximum $ENDPOINTS.Length)]
-        $client.GetAsync("$baseUrl$path")
-    }
+    $tasks = [System.Threading.Tasks.Task[]]@(
+        1..$CONCURRENCY | ForEach-Object {
+            $path = $ENDPOINTS[(Get-Random -Maximum $ENDPOINTS.Length)]
+            $script:client.GetAsync("$baseUrl$path")
+        }
+    )
 
     [System.Threading.Tasks.Task]::WaitAll($tasks)
 
