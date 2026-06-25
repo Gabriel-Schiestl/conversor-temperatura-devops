@@ -6,9 +6,9 @@
 const http = require('http');
 
 const TARGET_IP   = '0.0.0.0';   // <-- substitua pelo IP do LoadBalancer
-const TARGET_PORT = 32000;
-const CONCURRENCY = 50;           // requisições paralelas por rodada
-const INTERVAL_MS = 100;          // intervalo entre rodadas (ms)
+const TARGET_PORT = 80;
+const CONCURRENCY = 200;           // requisições paralelas por rodada
+const INTERVAL_MS = 200;          // intervalo entre rodadas (ms)
 
 const ENDPOINTS = [
   '/celsius/100/fahrenheit',
