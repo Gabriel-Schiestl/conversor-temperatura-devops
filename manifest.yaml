@@ -19,7 +19,7 @@ spec:
         spec:
             containers:
                 - name: conversor-temperatura
-                  image: gabrielschiestl/conversor-temperatura:latest
+                  image: gabrielschiestl/conversor-temperatura:v1.0
                   imagePullPolicy: IfNotPresent                                                                          
                   command: ["node"]
                   args: ["server.js"]
@@ -86,5 +86,5 @@ spec:
     type: LoadBalancer
     ports:
         - protocol: TCP
-          port: 32000
+          port: 80
           targetPort: 8080

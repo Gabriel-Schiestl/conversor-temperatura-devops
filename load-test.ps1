@@ -7,7 +7,7 @@
 # Set-ExecutionPolicy -Scope Process Bypass
 
 $TARGET_IP   = "0.0.0.0"   # <-- substitua pelo IP do LoadBalancer
-$TARGET_PORT = 32000
+$TARGET_PORT = 80
 $CONCURRENCY = 50           # requisições paralelas por rodada
 $INTERVAL_MS = 200          # intervalo entre rodadas (ms)
 
